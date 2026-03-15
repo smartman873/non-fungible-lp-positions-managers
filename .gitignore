@@ -8,11 +8,11 @@ out/
 /broadcast/*/5/
 /broadcast/**/dry-run/
 
-# Docs
-docs/
-
 # Dotenv file
 .env
 
 # Node modules
 node_modules/
+
+# Frontend
+frontend/node_modules/

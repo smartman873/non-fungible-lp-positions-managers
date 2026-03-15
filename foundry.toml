@@ -7,7 +7,22 @@ libs = ["lib"]
 out = "out"
 solc_version = "0.8.30"
 src = "src"
+test = "test"
 via_ir = false
+
+[profile.default.fuzz]
+runs = 256
+
+[profile.default.invariant]
+depth = 500
+runs = 256
+
+[profile.ci.fuzz]
+runs = 512
+
+[profile.ci.invariant]
+depth = 1000
+runs = 512
 
 [lint]
 exclude_lints = ["screaming-snake-case-immutable", "screaming-snake-case-const"]

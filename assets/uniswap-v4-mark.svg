@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-label="Uniswap v4">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8a65"/>
+      <stop offset="1" stop-color="#ff3d7f"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="64" rx="12" fill="#fff3f6"/>
+  <path d="M36 45c11-8 18-20 18-31 9 7 14 16 13 25 4-2 8-2 12 1-4 2-7 5-8 9-4-2-8-2-11 1-5-2-10-3-24-5z" fill="url(#g1)"/>
+  <text x="80" y="39" font-size="24" font-family="Space Grotesk, Avenir Next, sans-serif" fill="#521d32">Uniswap v4</text>
+</svg>

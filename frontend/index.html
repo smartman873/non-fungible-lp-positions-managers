@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fractional LP Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">Non-Fungible LP Positions Hook</p>
+        <h1>Fractional LP Console</h1>
+        <p>
+          Deterministic fractional ownership for concentrated liquidity vaults.
+          This UI models share math and ownership distribution for demo flow.
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2>Create Fractional Pool</h2>
+        <div class="grid">
+          <label>Token0<input id="token0" value="mUSDC" /></label>
+          <label>Token1<input id="token1" value="mWETH" /></label>
+          <label>Tick Lower<input id="tickLower" type="number" value="-600" /></label>
+          <label>Tick Upper<input id="tickUpper" type="number" value="600" /></label>
+        </div>
+        <button id="createPool">Create Vault Context</button>
+      </section>
+
+      <section class="panel two-col">
+        <div>
+          <h2>Deposit Liquidity</h2>
+          <div class="grid">
+            <label>Owner<input id="depositOwner" value="userA" /></label>
+            <label>Amount Token0<input id="deposit0" type="number" value="1000" min="0" /></label>
+            <label>Amount Token1<input id="deposit1" type="number" value="1000" min="0" /></label>
+          </div>
+          <button id="depositBtn">Deposit + Mint Shares</button>
+        </div>
+
+        <div>
+          <h2>Redeem Shares</h2>
+          <div class="grid">
+            <label>Owner<input id="redeemOwner" value="userA" /></label>
+            <label>Shares<input id="redeemShares" type="number" value="100" min="0" /></label>
+          </div>
+          <button id="redeemBtn">Redeem</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Vault State</h2>
+        <dl id="metrics" class="metrics"></dl>
+      </section>
+
+      <section class="panel">
+        <h2>Ownership Distribution</h2>
+        <div id="ownership" class="ownership"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Activity Log</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

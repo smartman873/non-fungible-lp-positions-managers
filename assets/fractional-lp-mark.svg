@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-label="Fractional LP">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f382a"/>
+      <stop offset="1" stop-color="#25b383"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="64" rx="12" fill="#eefcf6"/>
+  <g fill="url(#g2)">
+    <rect x="18" y="18" width="12" height="28" rx="3"/>
+    <rect x="34" y="12" width="12" height="34" rx="3"/>
+    <rect x="50" y="24" width="12" height="22" rx="3"/>
+  </g>
+  <text x="80" y="39" font-size="24" font-family="Space Grotesk, Avenir Next, sans-serif" fill="#0f382a">Fractional LP</text>
+</svg>

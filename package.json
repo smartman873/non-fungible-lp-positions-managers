@@ -1,0 +1,16 @@
+{
+  "name": "non-fungible-lp-positions-managers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fractionalized concentrated liquidity ownership using a Uniswap v4 hook + vault model.",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test -vv",
+    "coverage": "forge coverage",
+    "demo:local": "forge script script/01_DemoFractionalLifecycle.s.sol:DemoFractionalLifecycleScript --rpc-url http://127.0.0.1:8545 --broadcast -vv",
+    "demo:testnet": "forge script script/00_DeployFractionalSystem.s.sol:DeployFractionalSystemScript --rpc-url $BASE_SEPOLIA_RPC_URL --account $ACCOUNT --sender $SENDER --broadcast -vv"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

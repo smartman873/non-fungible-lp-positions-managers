@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fractional LP Deployments",
+  "type": "object",
+  "required": ["chainId", "contracts"],
+  "properties": {
+    "chainId": {
+      "type": "integer"
+    },
+    "contracts": {
+      "type": "object",
+      "required": ["fractionalLPHook", "liquidityVault", "fractionalToken"],
+      "properties": {
+        "fractionalLPHook": {"type": "string"},
+        "liquidityVault": {"type": "string"},
+        "fractionalToken": {"type": "string"},
+        "positionNFT": {"type": "string"}
+      }
+    }
+  }
+}

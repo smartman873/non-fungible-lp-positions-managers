@@ -16,3 +16,8 @@ node_modules/
 
 # Frontend
 frontend/node_modules/
+
+# Untracked directories requested by repository owner
+context/
+frontend/
+lib/

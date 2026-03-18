@@ -12,8 +12,9 @@ contract PositionNFT is ERC721, Ownable {
 
     uint256 public nextTokenId;
 
-    constructor(string memory name_, string memory symbol_, address owner_) ERC721(name_, symbol_) Ownable(owner_) {
+    constructor(string memory name_, string memory symbol_, address owner_) ERC721(name_, symbol_) Ownable(msg.sender) {
         if (owner_ == address(0)) revert PositionNFT__ZeroAddress();
+        _transferOwnership(owner_);
     }
 
     function mint(address to) external onlyOwner returns (uint256 tokenId) {

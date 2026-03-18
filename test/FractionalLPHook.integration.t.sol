@@ -8,7 +8,7 @@ import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import {IPoolManager, SwapParams} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
@@ -116,6 +116,55 @@ contract FractionalLPHookIntegrationTest is BaseTest {
         new FractionalLPHook(poolManager, ILiquidityVault(address(vault)), owner);
     }
 
+    function test_ConstructorRevertsOnZeroVaultWhenPermissionAddressIsValid() external {
+        address flags = address(uint160(Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG) ^ (0x4545 << 144));
+        bytes memory constructorArgs = abi.encode(poolManager, ILiquidityVault(address(0)), owner);
+
+        vm.expectRevert(FractionalLPHook.FractionalLPHook__ZeroAddress.selector);
+        deployCodeTo("FractionalLPHook.sol:FractionalLPHook", constructorArgs, flags);
+    }
+
+    function test_GetHookPermissionsAreSet() external view {
+        Hooks.Permissions memory permissions = hook.getHookPermissions();
+        assertTrue(permissions.beforeSwap);
+        assertTrue(permissions.afterSwap);
+        assertFalse(permissions.beforeInitialize);
+    }
+
+    function test_BeforeSwapRevertsForUnregisteredPool() external {
+        PoolKey memory unknownPoolKey = _unregisteredPoolKey();
+        SwapParams memory params = _dummySwapParams();
+
+        vm.prank(address(poolManager));
+        vm.expectRevert(FractionalLPHook.FractionalLPHook__UnknownPool.selector);
+        hook.beforeSwap(address(this), unknownPoolKey, params, bytes(""));
+    }
+
+    function test_AfterSwapRevertsForUnregisteredPool() external {
+        PoolKey memory unknownPoolKey = _unregisteredPoolKey();
+        SwapParams memory params = _dummySwapParams();
+
+        vm.prank(address(poolManager));
+        vm.expectRevert(FractionalLPHook.FractionalLPHook__UnknownPool.selector);
+        hook.afterSwap(address(this), unknownPoolKey, params, BalanceDelta.wrap(0), bytes(""));
+    }
+
+    function test_AfterSwapSkipsAccrualForShortHookData() external {
+        vm.prank(address(poolManager));
+        hook.afterSwap(address(this), poolKey, _dummySwapParams(), BalanceDelta.wrap(0), bytes("abcd"));
+
+        assertEq(hook.afterSwapCounter(poolId), 1);
+        assertEq(vault.snapshot().accumulatedFees, 0);
+    }
+
+    function test_AfterSwapSkipsAccrualForZeroFeeSignal() external {
+        vm.prank(address(poolManager));
+        hook.afterSwap(address(this), poolKey, _dummySwapParams(), BalanceDelta.wrap(0), abi.encode(uint256(0)));
+
+        assertEq(hook.afterSwapCounter(poolId), 1);
+        assertEq(vault.snapshot().accumulatedFees, 0);
+    }
+
     function test_EndToEndFractionalLifecycle() external {
         vm.prank(userA);
         uint256 sharesA = vault.deposit(1_000e18, 1_000e18, userA);
@@ -151,5 +200,19 @@ contract FractionalLPHookIntegrationTest is BaseTest {
 
         assertGt(amount0Out + amount1Out, 2_000e18);
         assertLt(vault.totalVaultValue(), totalBeforeRedeem);
+    }
+
+    function _dummySwapParams() internal pure returns (SwapParams memory params) {
+        params = SwapParams({zeroForOne: true, amountSpecified: -1e18, sqrtPriceLimitX96: 1});
+    }
+
+    function _unregisteredPoolKey() internal view returns (PoolKey memory unknownPoolKey) {
+        unknownPoolKey = PoolKey({
+            currency0: currency0,
+            currency1: currency1,
+            fee: 500,
+            tickSpacing: 60,
+            hooks: IHooks(hook)
+        });
     }
 }

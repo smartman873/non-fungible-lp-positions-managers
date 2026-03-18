@@ -15,6 +15,14 @@ contract AccountingLibraryTest is Test {
         return AccountingLibrary.computeAssetsForRedeem(sharesBurned, totalShares, totalValueBefore);
     }
 
+    function callComputeSharesForDeposit(uint256 depositValue, uint256 totalShares, uint256 totalValueBefore)
+        external
+        pure
+        returns (uint256)
+    {
+        return AccountingLibrary.computeSharesForDeposit(depositValue, totalShares, totalValueBefore);
+    }
+
     function test_ComputeSharesForFirstDeposit() external pure {
         uint256 minted = AccountingLibrary.computeSharesForDeposit(1_000e18, 0, 0);
         assertEq(minted, 1_000e18);
@@ -43,5 +51,23 @@ contract AccountingLibraryTest is Test {
     function test_RevertOnZeroTotalShares() external {
         vm.expectRevert(AccountingLibrary.AccountingLibrary__ZeroShares.selector);
         this.callComputeAssetsForRedeem(1, 0, 10);
+    }
+
+    function test_RevertOnZeroDepositValue() external {
+        vm.expectRevert(AccountingLibrary.AccountingLibrary__ZeroAmount.selector);
+        this.callComputeSharesForDeposit(0, 10, 10);
+    }
+
+    function test_RevertOnZeroVaultValue() external {
+        vm.expectRevert(AccountingLibrary.AccountingLibrary__InvalidVaultValue.selector);
+        this.callComputeAssetsForRedeem(1, 10, 0);
+    }
+
+    function test_ComputeSharePriceDefaultsToQ96OnZeroValues() external pure {
+        uint256 priceWithZeroShares = AccountingLibrary.computeSharePriceX96(0, 100e18);
+        uint256 priceWithZeroValue = AccountingLibrary.computeSharePriceX96(100e18, 0);
+
+        assertEq(priceWithZeroShares, 2 ** 96);
+        assertEq(priceWithZeroValue, 2 ** 96);
     }
 }

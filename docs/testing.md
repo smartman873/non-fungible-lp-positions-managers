@@ -4,7 +4,7 @@
 
 ```bash
 forge test -vv
-forge coverage
+forge coverage --report summary --exclude-tests --no-match-coverage "test/|script/|src/mocks/|src/interfaces/|test/utils/|test/invariants/"
 ```
 
 ## Coverage Domains

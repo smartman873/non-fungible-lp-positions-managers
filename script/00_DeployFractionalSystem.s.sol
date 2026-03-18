@@ -5,17 +5,19 @@ import {Script, console2} from "forge-std/Script.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
+import {LiquidityAmounts} from "@uniswap/v4-core/test/utils/LiquidityAmounts.sol";
 import {IPositionManager} from "@uniswap/v4-periphery/src/interfaces/IPositionManager.sol";
 import {HookMiner} from "@uniswap/v4-periphery/src/utils/HookMiner.sol";
+import {Actions} from "@uniswap/v4-periphery/src/libraries/Actions.sol";
 
 import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
 
 import {Deployers} from "test/utils/Deployers.sol";
-import {EasyPosm} from "test/utils/libraries/EasyPosm.sol";
 
 import {MockToken} from "src/mocks/MockToken.sol";
 import {LiquidityVault} from "src/LiquidityVault.sol";
@@ -23,12 +25,12 @@ import {FractionalLPHook} from "src/FractionalLPHook.sol";
 import {ILiquidityVault} from "src/interfaces/ILiquidityVault.sol";
 
 contract DeployFractionalSystemScript is Script, Deployers {
-    using EasyPosm for IPositionManager;
     using CurrencyLibrary for Currency;
 
     error DeployFractionalSystemScript__HookAddressMismatch();
 
     uint160 internal constant SQRT_PRICE_1_1 = 79228162514264337593543950336;
+    uint256 internal constant ANVIL_PK_0 = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
 
     function _etch(address target, bytes memory bytecode) internal override {
         if (block.chainid == 31337) {
@@ -39,12 +41,13 @@ contract DeployFractionalSystemScript is Script, Deployers {
     }
 
     function run() external {
-        address deployer = _deployerAddress();
+        uint256 deployerPrivateKey = _deployerPrivateKey();
+        address deployer = vm.addr(deployerPrivateKey);
 
         // Permit2 must exist at canonical address before deploying v4 artifacts.
         deployPermit2();
 
-        vm.startBroadcast(deployer);
+        vm.startBroadcast(deployerPrivateKey);
 
         deployPoolManager();
         deployPositionManager();
@@ -100,6 +103,7 @@ contract DeployFractionalSystemScript is Script, Deployers {
 
         poolManager.initialize(poolKey, SQRT_PRICE_1_1);
         hook.registerPool(poolKey);
+        _seedInitialLiquidity(poolKey, deployer);
 
         vm.stopBroadcast();
 
@@ -112,11 +116,37 @@ contract DeployFractionalSystemScript is Script, Deployers {
         console2.log("positionManager", address(positionManager));
     }
 
-    function _deployerAddress() internal returns (address) {
-        address[] memory wallets = vm.getWallets();
-        if (wallets.length > 0) {
-            return wallets[0];
+    function _deployerPrivateKey() internal view returns (uint256) {
+        if (block.chainid == 31337) {
+            return ANVIL_PK_0;
         }
-        return msg.sender;
+        return vm.envUint("SEPOLIA_PRIVATE_KEY");
+    }
+
+    function _seedInitialLiquidity(PoolKey memory poolKey, address recipient) internal {
+        int24 tickLower = TickMath.minUsableTick(poolKey.tickSpacing);
+        int24 tickUpper = TickMath.maxUsableTick(poolKey.tickSpacing);
+        uint128 liquidityAmount = 100e18;
+
+        (uint256 amount0Expected, uint256 amount1Expected) = LiquidityAmounts.getAmountsForLiquidity(
+            SQRT_PRICE_1_1,
+            TickMath.getSqrtPriceAtTick(tickLower),
+            TickMath.getSqrtPriceAtTick(tickUpper),
+            liquidityAmount
+        );
+
+        bytes memory actions = abi.encodePacked(
+            uint8(Actions.MINT_POSITION), uint8(Actions.SETTLE_PAIR), uint8(Actions.SWEEP), uint8(Actions.SWEEP)
+        );
+
+        bytes[] memory params = new bytes[](4);
+        params[0] = abi.encode(
+            poolKey, tickLower, tickUpper, liquidityAmount, amount0Expected + 1, amount1Expected + 1, recipient, bytes("")
+        );
+        params[1] = abi.encode(poolKey.currency0, poolKey.currency1);
+        params[2] = abi.encode(poolKey.currency0, recipient);
+        params[3] = abi.encode(poolKey.currency1, recipient);
+
+        positionManager.modifyLiquidities(abi.encode(actions, params), type(uint256).max);
     }
 }

@@ -10,8 +10,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract FractionalToken is ERC20, Ownable {
     error FractionalToken__ZeroAddress();
 
-    constructor(string memory name_, string memory symbol_, address owner_) ERC20(name_, symbol_) Ownable(owner_) {
+    constructor(string memory name_, string memory symbol_, address owner_) ERC20(name_, symbol_) Ownable(msg.sender) {
         if (owner_ == address(0)) revert FractionalToken__ZeroAddress();
+        _transferOwnership(owner_);
     }
 
     function mint(address to, uint256 amount) external onlyOwner {

@@ -12,7 +12,7 @@ test:
 	forge test -vv
 
 coverage:
-	forge coverage
+	forge coverage --report summary --exclude-tests --no-match-coverage "test/|script/|src/mocks/|src/interfaces/|test/utils/|test/invariants/"
 
 lint:
 	forge fmt --check
@@ -30,6 +30,6 @@ demo-local:
 	forge script script/01_DemoFractionalLifecycle.s.sol:DemoFractionalLifecycleScript --rpc-url http://127.0.0.1:8545 --broadcast -vv
 
 demo-testnet:
-	forge script script/00_DeployFractionalSystem.s.sol:DeployFractionalSystemScript --rpc-url $$BASE_SEPOLIA_RPC_URL --account $$ACCOUNT --sender $$SENDER --broadcast -vv
+	./scripts/demo_fractional.sh
 
-demo-fractional: demo-local
+demo-fractional: demo-testnet

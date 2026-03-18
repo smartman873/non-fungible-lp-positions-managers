@@ -70,10 +70,12 @@ contract LiquidityVault is Ownable, ReentrancyGuard {
         string memory shareName_,
         string memory shareSymbol_,
         bool deployPositionNft
-    ) Ownable(owner_) {
+    ) Ownable(msg.sender) {
         if (owner_ == address(0)) revert LiquidityVault__ZeroAddress();
         if (address(token0_) == address(0) || address(token1_) == address(0)) revert LiquidityVault__ZeroAddress();
         if (address(token0_) == address(token1_)) revert LiquidityVault__ZeroAddress();
+
+        _transferOwnership(owner_);
 
         token0 = token0_;
         token1 = token1_;

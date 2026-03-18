@@ -35,12 +35,13 @@ contract FractionalLPHook is BaseHook, Ownable {
 
     constructor(IPoolManager poolManager_, ILiquidityVault vault_, address owner_)
         BaseHook(poolManager_)
-        Ownable(owner_)
+        Ownable(msg.sender)
     {
         if (address(vault_) == address(0) || owner_ == address(0)) {
             revert FractionalLPHook__ZeroAddress();
         }
         vault = vault_;
+        _transferOwnership(owner_);
     }
 
     function getHookPermissions() public pure override returns (Hooks.Permissions memory permissions) {
